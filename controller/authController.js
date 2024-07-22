@@ -10,8 +10,8 @@ const InvitationToken = require("../model/InvitationToken")
 
 
 exports.signup = async (req, res) => {
+  
   const { fullName, country, email, phone, password } = req.body;
-  console.log('hi')
 
   try {
     const userExists = await User.findOne({ email });
@@ -34,6 +34,7 @@ exports.signup = async (req, res) => {
 
 exports.verifyOtpAndCreateUser = async (req, res) => {
   const { email, otp, fullName, country, phone, password } = req.body;
+  console.log(otp)
 
   try {
     const otpRecord = await OTP.findOne({ email, otp });
@@ -59,7 +60,7 @@ exports.login = async (req, res) => {
 
   try {
     const user = await User.findOne({ email });
-
+  console.log(email)
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }

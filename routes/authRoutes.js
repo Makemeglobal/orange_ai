@@ -4,48 +4,7 @@ const router = express.Router();
 const authController = require('../controller/authController');
 
 
-/**
- * @swagger
- * tags:
- *   name: Auth
- *   description: Authentication and user management
- */
 
-/**
- * @swagger
- * /api/auth/signup:
- *   post:
- *     summary: Register a new user
- *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - fullName
- *               - companyName
- *               - email
- *               - phone
- *               - password
- *             properties:
- *               fullName:
- *                 type: string
- *               companyName:
- *                 type: string
- *               email:
- *                 type: string
- *               phone:
- *                 type: string
- *               password:
- *                 type: string
- *     responses:
- *       201:
- *         description: User created successfully
- *       400:
- *         description: Invalid input
- */
 router.post('/signup', authController.signup);
 
 /**
