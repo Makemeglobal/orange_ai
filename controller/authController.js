@@ -76,6 +76,71 @@ exports.login = async (req, res) => {
 };
 
 
+// Invite Sub-user
+exports.inviteSubUser = async (req, res) => {
+  const { email } = req.body;
+  const inviterId = req.user.id; 
+
+  try {
+    const inviter = await User.findById(inviterId);
+    if (!inviter) {
+      return res.status(400).json({ message: 'Inviter not found' });
+    }
+
+    const token = jwt.sign({ email, inviterId }, process.env.JWT_SECRET, { expiresIn: '24h' });
+    await InvitationToken.create({ email, inviter: inviterId, token });
+
+    await sendInvitationEmail(email, inviter.fullName, token);
+
+    res.status(200).json({ message: 'Invitation sent' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+
+exports.acceptInvitation = async (req, res) => {
+  const { token } = req.query;
+  const { fullName, companyName, phone, password } = req.body;
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const { email, inviterId } = decoded;
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await User.create({ fullName, companyName, email, phone, password: hashedPassword });
+
+    await User.findByIdAndUpdate(inviterId, { $push: { subUsers: newUser._id } });
+
+    await InvitationToken.deleteOne({ token });
+
+    res.status(201).json({ message: 'User created successfully and added as sub-user' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+
+exports.deleteSubUser = async (req, res) => {
+  const { subUserId } = req.body;
+  const inviterId = req.user.id; // Assume you have a middleware that sets req.user
+
+  try {
+    await User.findByIdAndUpdate(inviterId, { $pull: { subUsers: subUserId } });
+    await User.findByIdAndDelete(subUserId);
+
+    res.status(200).json({ message: 'Sub-user deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+
 exports.forgotPassword = async (req, res) => {
   const { email } = req.body;
 
