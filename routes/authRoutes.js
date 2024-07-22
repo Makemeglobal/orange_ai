@@ -6,6 +6,7 @@ const authController = require('../controller/authController');
 
 
 router.post('/signup', authController.signup);
+router.get('/users/:id/sub-users', authController.getSubUsersById);
 
 /**
  * @swagger

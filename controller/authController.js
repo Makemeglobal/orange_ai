@@ -80,7 +80,24 @@ exports.login = async (req, res) => {
 };
 
 
-// Invite Sub-user
+exports.getSubUsersById = async (req, res) => {
+  try {
+    const { id } = req.params; 
+
+   
+    const user = await User.findById(id).populate('subUsers'); 
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Return the sub-users
+    res.status(200).json(user.subUsers);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
 exports.inviteSubUser = async (req, res) => {
   const { email } = req.body;
   const {inviterId} = req.body; 
