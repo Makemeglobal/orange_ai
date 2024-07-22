@@ -5,6 +5,8 @@ const jwt = require('jsonwebtoken');
 const generateOTP = require('../utils/generateOTP');
 const sendEmail = require('../utils/sendEmail');
 require('dotenv').config();
+const sendInvitationEmail= require("../utils/sendInvitationEmail")
+const InvitationToken = require("../model/InvitationToken")
 
 
 exports.signup = async (req, res) => {
@@ -79,22 +81,28 @@ exports.login = async (req, res) => {
 // Invite Sub-user
 exports.inviteSubUser = async (req, res) => {
   const { email } = req.body;
-  const inviterId = req.user.id; 
+  const {inviterId} = req.body; 
+  console.log(inviterId)
 
   try {
     const inviter = await User.findById(inviterId);
+    console.log(inviter)
     if (!inviter) {
       return res.status(400).json({ message: 'Inviter not found' });
     }
 
     const token = jwt.sign({ email, inviterId }, process.env.JWT_SECRET, { expiresIn: '24h' });
-    await InvitationToken.create({ email, inviter: inviterId, token });
+    console.log(token)
+   const iToken= await InvitationToken.create({ email, inviter: inviterId, token });
+
+console.log(iToken ,"ji")
 
     await sendInvitationEmail(email, inviter.fullName, token);
 
     res.status(200).json({ message: 'Invitation sent' });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
+    console.log(error)
   }
 };
 
@@ -128,7 +136,7 @@ exports.acceptInvitation = async (req, res) => {
 
 exports.deleteSubUser = async (req, res) => {
   const { subUserId } = req.body;
-  const inviterId = req.user.id; // Assume you have a middleware that sets req.user
+  const {inviterId }= req.body; // Assume you have a middleware that sets req.user
 
   try {
     await User.findByIdAndUpdate(inviterId, { $pull: { subUsers: subUserId } });
