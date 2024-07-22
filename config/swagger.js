@@ -12,7 +12,7 @@ const options = {
     },
     servers: [
       {
-        url: 'https://orange-ai-5c137d33eeeb.herokuapp.com/api',
+        url: 'http://localhost:3000/',
       },
     ],
     components: {

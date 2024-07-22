@@ -10,7 +10,8 @@ const InvitationToken = require("../model/InvitationToken")
 
 
 exports.signup = async (req, res) => {
-  const { fullName, companyName, email, phone, password } = req.body;
+  const { fullName, country, email, phone, password } = req.body;
+  console.log('hi')
 
   try {
     const userExists = await User.findOne({ email });
@@ -32,7 +33,7 @@ exports.signup = async (req, res) => {
 
 
 exports.verifyOtpAndCreateUser = async (req, res) => {
-  const { email, otp, fullName, companyName, phone, password } = req.body;
+  const { email, otp, fullName, country, phone, password } = req.body;
 
   try {
     const otpRecord = await OTP.findOne({ email, otp });
@@ -43,7 +44,7 @@ exports.verifyOtpAndCreateUser = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await User.create({ fullName, companyName, email, phone, password: hashedPassword });
+    await User.create({ fullName, country, email, phone, password: hashedPassword });
 
     await OTP.deleteOne({ email, otp });
 
@@ -109,7 +110,7 @@ console.log(iToken ,"ji")
 
 exports.acceptInvitation = async (req, res) => {
   const { token } = req.query;
-  const { fullName, companyName, phone, password } = req.body;
+  const { fullName, country, phone, password } = req.body;
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -121,7 +122,7 @@ exports.acceptInvitation = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await User.create({ fullName, companyName, email, phone, password: hashedPassword });
+    const newUser = await User.create({ fullName, country, email, phone, password: hashedPassword });
 
     await User.findByIdAndUpdate(inviterId, { $push: { subUsers: newUser._id } });
 
