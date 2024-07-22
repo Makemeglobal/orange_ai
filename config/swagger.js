@@ -12,7 +12,7 @@ const options = {
     },
     servers: [
       {
-        url: 'https://orange-ai-5c137d33eeeb.herokuapp.com/api',
+        url: 'https://orange-ai.onrender.com/api',
       },
     ],
     components: {
