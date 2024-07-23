@@ -12,7 +12,7 @@ const sendInvitationEmail = async (to, inviterName, inviteToken) => {
     });
 
     const invitationLink = `https://orange-ai-5c137d33eeeb.herokuapp.com/api/auth/accept-invitation?token=${inviteToken}`;
-
+   
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to,

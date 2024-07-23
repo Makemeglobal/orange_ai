@@ -6,7 +6,7 @@ const authController = require('../controller/authController');
 
 
 router.post('/signup', authController.signup);
-router.get('/users/:id/sub-users', authController.getSubUsersById);
+router.post('/users/sub-users', authController.getSubUsersById);
 
 /**
  * @swagger
@@ -198,7 +198,7 @@ router.post('/invite-sub-user',  authController.inviteSubUser);
  *       400:
  *         description: Invalid input
  */
-router.post('/accept-invitation', authController.acceptInvitation);
+router.get('/accept-invitation', authController.acceptInvitation);
 
 /**
  * @swagger
