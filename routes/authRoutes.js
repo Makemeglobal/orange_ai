@@ -1,12 +1,12 @@
 // routes/authRoutes.js
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const authController = require('../controller/authController');
+const authController = require("../controller/authController");
+const upload = require("../middleware/multerConfig");
+const { authMiddleware } = require("../middleware/auth");
 
-
-
-router.post('/signup', authController.signup);
-router.post('/users/sub-users', authController.getSubUsersById);
+router.post("/signup", authController.signup);
+router.post("/users/sub-users", authController.getSubUsersById);
 
 /**
  * @swagger
@@ -46,7 +46,7 @@ router.post('/users/sub-users', authController.getSubUsersById);
  *       400:
  *         description: Invalid input
  */
-router.post('/verify-otp', authController.verifyOtpAndCreateUser);
+router.post("/verify-otp", authController.verifyOtpAndCreateUser);
 
 /**
  * @swagger
@@ -74,7 +74,7 @@ router.post('/verify-otp', authController.verifyOtpAndCreateUser);
  *       400:
  *         description: Invalid input
  */
-router.post('/login', authController.login);
+router.post("/login", authController.login);
 
 /**
  * @swagger
@@ -99,7 +99,7 @@ router.post('/login', authController.login);
  *       400:
  *         description: Invalid input
  */
-router.post('/forgot-password', authController.forgotPassword);
+router.post("/forgot-password", authController.forgotPassword);
 
 /**
  * @swagger
@@ -130,7 +130,7 @@ router.post('/forgot-password', authController.forgotPassword);
  *       400:
  *         description: Invalid input
  */
-router.post('/reset-password', authController.resetPassword);
+router.post("/reset-password", authController.resetPassword);
 
 /**
  * @swagger
@@ -157,7 +157,7 @@ router.post('/reset-password', authController.resetPassword);
  *       400:
  *         description: Invalid input
  */
-router.post('/invite-sub-user',  authController.inviteSubUser);
+router.post("/invite-sub-user", authController.inviteSubUser);
 
 /**
  * @swagger
@@ -198,7 +198,7 @@ router.post('/invite-sub-user',  authController.inviteSubUser);
  *       400:
  *         description: Invalid input
  */
-router.get('/accept-invitation', authController.acceptInvitation);
+router.get("/accept-invitation", authController.acceptInvitation);
 
 /**
  * @swagger
@@ -225,6 +225,11 @@ router.get('/accept-invitation', authController.acceptInvitation);
  *       400:
  *         description: Invalid input
  */
-router.delete('/delete-sub-user',  authController.deleteSubUser);
-
+router.delete("/delete-sub-user", authController.deleteSubUser);
+router.put("/update-profile", authMiddleware, authController.updateProfile);
+router.post(
+  "/upload-image",
+  upload.single("image"),
+  authController.uploadImage
+);
 module.exports = router;
