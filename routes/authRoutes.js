@@ -227,7 +227,7 @@ router.get("/accept-invitation", authController.acceptInvitation);
  */
 router.delete("/delete-sub-user", authController.deleteSubUser);
 router.put("/update-profile", authMiddleware, authController.updateProfile);
-router.put("/get-profile", authMiddleware, authController.getProfile);
+router.get("/get-profile", authMiddleware, authController.getProfile);
 
 router.post(
   "/upload-image",
