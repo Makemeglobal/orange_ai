@@ -250,6 +250,22 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
+exports.getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user); // Get user ID from the token
+    if (!user) {
+      return res.status(400).json({ Message: "User not found" });
+    }
+    res.status(200).json({
+      success: true,
+      user,
+    });
+  } catch (err) {
+    console.log("err", err);
+    res.status(500).send("Server error");
+  }
+};
+
 exports.uploadImage = async (req, res) => {
   const imageUrl = req.file.path;
   res.status(200).json({
