@@ -14,12 +14,14 @@ const app = express();
 
 
 
-app.use(cors({
-    origin: '*', // Allow requests from any origin
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allow all common HTTP methods
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'], // Allow these headers
-    credentials: true // Allow cookies and credentials
-  }));
+const corsOptions = {
+  origin: ['https://www.poweredbyorange.ai', 'http://localhost'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true
+};
+
+app.use(cors(corsOptions));
 // app.use(cors)
 // app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 app.use(bodyParser.json());
