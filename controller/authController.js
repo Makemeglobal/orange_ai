@@ -159,7 +159,7 @@ exports.acceptInvitation = async (req, res) => {
     await User.findByIdAndUpdate(inviterId, { $push: { subUsers: email } });
 
     await InvitationToken.deleteOne({ token });
-    res.redirect("http://localhost:3000/signup");
+    res.redirect("https://orange-ai-cyan.vercel.app/signup");
     res
       .status(201)
       .json({ message: "User created successfully and added as sub-user" });
