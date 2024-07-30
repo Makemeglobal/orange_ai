@@ -4,7 +4,7 @@ const router = express.Router();
 const authController = require("../controller/authController");
 const upload = require("../middleware/multerConfig");
 const { authMiddleware } = require("../middleware/auth");
-const  Feedback = require("../models/Feedback")
+const  Feedback = require("../model/Feedback")
 router.post("/signup", authController.signup);
 router.post("/users/sub-users", authController.getSubUsersById);
 
@@ -50,6 +50,14 @@ router.post("/verify-otp", authController.verifyOtpAndCreateUser);
 
 
 
+router.get('/feedback', async (req, res) => {
+    try {
+        const feedbacks = await Feedback.find();
+        res.status(200).json(feedbacks);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to retrieve feedback' });
+    }
+});
 router.post('/feedback', async (req, res) => {
     const { name, email, message } = req.body;
 
