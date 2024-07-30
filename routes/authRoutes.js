@@ -59,14 +59,14 @@ router.get('/feedback', async (req, res) => {
     }
 });
 router.post('/feedback', async (req, res) => {
-    const { name, email, message } = req.body;
+    const { name, email, message ,prompt,reason,category} = req.body;
 
     if (!name || !email || !message) {
         return res.status(400).json({ error: 'All fields are required' });
     }
 
     try {
-        const newFeedback = new Feedback({ name, email, message });
+        const newFeedback = new Feedback({ name, email, message ,prompt,reason,category});
         await newFeedback.save();
         res.status(201).json(newFeedback);
     } catch (err) {
