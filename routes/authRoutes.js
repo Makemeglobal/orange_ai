@@ -4,7 +4,7 @@ const router = express.Router();
 const authController = require("../controller/authController");
 const upload = require("../middleware/multerConfig");
 const { authMiddleware } = require("../middleware/auth");
-
+const  Feedback = require("../models/Feedback")
 router.post("/signup", authController.signup);
 router.post("/users/sub-users", authController.getSubUsersById);
 
@@ -48,6 +48,23 @@ router.post("/users/sub-users", authController.getSubUsersById);
  */
 router.post("/verify-otp", authController.verifyOtpAndCreateUser);
 
+
+
+router.post('/feedback', async (req, res) => {
+    const { name, email, message } = req.body;
+
+    if (!name || !email || !message) {
+        return res.status(400).json({ error: 'All fields are required' });
+    }
+
+    try {
+        const newFeedback = new Feedback({ name, email, message });
+        await newFeedback.save();
+        res.status(201).json(newFeedback);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to save feedback' });
+    }
+});
 /**
  * @swagger
  * /api/auth/login:
