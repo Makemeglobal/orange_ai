@@ -10,7 +10,7 @@ const InvitationToken = require("../model/InvitationToken");
 const mongoose = require("mongoose");
 
 exports.signup = async (req, res) => {
-  const { fullName, country, email, phone, password } = req.body;
+  const { fullName, country, email, phone, password, invited } = req.body;
 
   try {
     const userExists = await User.findOne({ email });
@@ -26,12 +26,13 @@ exports.signup = async (req, res) => {
 
     res.status(200).json({ message: "OTP sent to email" });
   } catch (error) {
+    console.log(error)
     res.status(500).json({ message: "Server error" });
   }
 };
 
 exports.verifyOtpAndCreateUser = async (req, res) => {
-  const { email, otp, fullName, country, phone, password } = req.body;
+  const { email, otp, fullName, country, phone, password, invited } = req.body;
   console.log(otp);
 
   try {
@@ -43,13 +44,28 @@ exports.verifyOtpAndCreateUser = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await User.create({
-      fullName,
-      country,
-      email,
-      phone,
-      password: hashedPassword,
-    });
+    if (invited) {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const { inviterId } = decoded;
+      await User.findByIdAndUpdate(inviterId, { $push: { subUsers: email } });
+      await User.create({
+        fullName,
+        country,
+        email,
+        phone,
+        password: hashedPassword,
+        userType: "subUser",
+      });
+    } else {
+      await User.create({
+        fullName,
+        country,
+        email,
+        phone,
+        password: hashedPassword,
+        userType:'user'
+      });
+    }
 
     await OTP.deleteOne({ email, otp });
 
@@ -94,28 +110,36 @@ exports.getSubUsersById = async (req, res) => {
       return res.status(400).json({ message: "Email is required" });
     }
 
-    // Find the user by email
+ 
     const user = await User.findOne({ email }).populate("subUsers");
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Return the sub-users
-    res.status(200).json(user.subUsers);
+    
+    const allUsers = await Promise.all(
+      user.subUsers.map(async (subUserEmail) => {
+        const foundUser = await User.findOne({ email: subUserEmail });
+        return foundUser;
+      })
+    );
+
+    res.status(200).json(allUsers);
   } catch (error) {
     console.error("Error fetching sub-users:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
 
+
 exports.inviteSubUser = async (req, res) => {
   const { email } = req.body;
   console.log(req.body);
   const { inviterId } = req.body;
-
+  console.log(typeof inviterId)
   try {
-    const inviter = await User.findById(inviterId);
+    const inviter = await User.findOne({_id:inviterId});
     console.log(inviter);
     if (!inviter) {
       return res.status(400).json({ message: "Inviter not found" });
@@ -144,7 +168,7 @@ exports.inviteSubUser = async (req, res) => {
 
 exports.acceptInvitation = async (req, res) => {
   const { token } = req.query;
-  console.log(token);
+  // console.log(token);
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -157,9 +181,11 @@ exports.acceptInvitation = async (req, res) => {
     }
 
     await User.findByIdAndUpdate(inviterId, { $push: { subUsers: email } });
-
+    const savedToken = token;
     await InvitationToken.deleteOne({ token });
-    res.redirect("https://orange-ai-cyan.vercel.app/signup");
+    res.redirect(
+      `https://orange-ai-5c137d33eeeb.herokuapp.com/api/auth/signup?token=${savedToken}`
+    );
     res
       .status(201)
       .json({ message: "User created successfully and added as sub-user" });
@@ -170,7 +196,7 @@ exports.acceptInvitation = async (req, res) => {
 
 exports.deleteSubUser = async (req, res) => {
   const { subUserId } = req.body;
-  const { inviterId } = req.body; // Assume you have a middleware that sets req.user
+  const { inviterId } = req.body; 
 
   try {
     await User.findByIdAndUpdate(inviterId, { $pull: { subUsers: subUserId } });
