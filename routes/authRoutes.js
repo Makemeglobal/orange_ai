@@ -7,6 +7,9 @@ const { authMiddleware } = require("../middleware/auth");
 const  Feedback = require("../model/Feedback")
 router.post("/signup", authController.signup);
 router.post("/users/sub-users", authController.getSubUsersById);
+const Stripe = require('stripe');
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY);  
+
 
 /**
  * @swagger
@@ -254,6 +257,21 @@ router.delete("/delete-sub-user", authController.deleteSubUser);
 router.put("/update-profile", authMiddleware, authController.updateProfile);
 router.get("/get-profile", authMiddleware, authController.getProfile);
 
+router.post('/charge', async (req, res) => {
+    const { amount, currency, source } = req.body;
+
+    try {
+        const charge = await stripe.charges.create({
+            amount,
+            currency,
+            source,
+            description: 'Charge for payment'
+        });
+        res.status(200).json({ success: true, charge });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to create charge' });
+    }
+});
 router.post(
   "/upload-image",
   upload.single("image"),
