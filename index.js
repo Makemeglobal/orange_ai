@@ -25,7 +25,7 @@ app.use("/api/auth", authRoutes);
 
 app.post(
   "/api/auth/webhook",
-  express.raw({ type: "application/json" }),
+  bodyParser.raw({ type: "application/json" }),
   (request, response) => {
     let event = request.body;
     // Replace this endpoint secret with your endpoint's unique secret
@@ -33,6 +33,7 @@ app.post(
     // If you are using an endpoint defined with the API or dashboard, look in your webhook settings
     // at https://dashboard.stripe.com/webhooks
     const endpointSecret = process.env.END_POINT_SECRET;
+    console.log("endpointSecret", endpointSecret);
     // Only verify the event if you have an endpoint secret defined.
     // Otherwise use the basic event deserialized with JSON.parse
     if (endpointSecret) {
