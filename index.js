@@ -31,7 +31,7 @@ app.post(
   (request, response) => {
     let event = request.body;
 
-    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    const endpointSecret = "we_1Pk2JiK4wssUAgalCRtBnnAO";
 
     if (endpointSecret) {
       const signature = request.headers["stripe-signature"];
