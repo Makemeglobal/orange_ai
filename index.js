@@ -28,7 +28,39 @@ app.use("/api/auth", authRoutes);
 app.post(
   "/api/auth/webhook",
   express.raw({ type: "application/json" }),
-  stripePaymentStatus
+  (request, response) => {
+    let event = request.body;
+
+    const endpointSecret = "whsec_.....";
+
+    if (endpointSecret) {
+      const signature = request.headers["stripe-signature"];
+      try {
+        event = stripe.webhooks.constructEvent(
+          request.body,
+          signature,
+          endpointSecret
+        );
+      } catch (err) {
+        console.log(`⚠️  Webhook signature verification failed.`, err.message);
+        return response.sendStatus(400);
+      }
+    }
+    let subscription;
+    let status;
+
+    switch (event.type) {
+      case "customer.subscription.created":
+        subscription = event.data.object;
+        status = subscription.status;
+        console.log(`Subscription status is ${status}.`);
+
+        break;
+      default:
+        console.log(`Unhandled event type ${event.type}.`);
+    }
+    response.send();
+  }
 );
 
 const PORT = process.env.PORT || 5000;
