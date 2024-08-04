@@ -22,8 +22,21 @@ app.use(cors());
 // app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 app.use(bodyParser.json());
 app.use("/api/auth", authRoutes);
-app.use("/api/auth/webhook", bodyParser.raw({ type: "*/*" }));
-app.use("/api/auth/webhook", stripePaymentStatus);
+// app.use("/api/auth/webhook", bodyParser.raw({ type: "*/*" }));
+// app.use("/api/auth/webhook", stripePaymentStatus);
+
+app.post(
+  "/api/auth/webhook",
+  express.raw({ type: "application/json" }),
+  (request, response) => {
+    let event = request.body;
+    console.log("event", event);
+    const endpointSecret = "whsec_.....,";
+    console.log("endpointSecret", endpointSecret);
+
+    response.send();
+  }
+);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
