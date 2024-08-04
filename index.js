@@ -10,7 +10,7 @@ const cors = require("cors");
 const { stripePaymentStatus } = require("./controller/authController");
 connectDB();
 const app = express();
-
+app.use(express.json());
 // const corsOptions = {
 //   origin: ['https://www.poweredbyorange.ai', 'http://localhost'],
 //   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
