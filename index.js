@@ -24,13 +24,13 @@ app.use(bodyParser.json());
 app.use("/api/auth", authRoutes);
 // app.use("/api/auth/webhook", bodyParser.raw({ type: "*/*" }));
 // app.use("/api/auth/webhook", stripePaymentStatus);
-
+express.raw({ type: "application/json" });
 app.post(
   "/api/auth/webhook",
   express.raw({ type: "application/json" }),
   (request, response) => {
     let event = request.body;
-
+    console.log("event", event);
     const endpointSecret = "we_1Pk2JiK4wssUAgalCRtBnnAO";
 
     if (endpointSecret) {
