@@ -31,7 +31,7 @@ app.post(
   (request, response) => {
     let event = request.body;
     console.log("event", event);
-    const endpointSecret = "we_1Pk2JiK4wssUAgalCRtBnnAO";
+    const endpointSecret = process.env.END_POINT_SECRET;
 
     if (endpointSecret) {
       const signature = request.headers["stripe-signature"];
