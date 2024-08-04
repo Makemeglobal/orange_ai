@@ -28,14 +28,7 @@ app.use("/api/auth", authRoutes);
 app.post(
   "/api/auth/webhook",
   express.raw({ type: "application/json" }),
-  (request, response) => {
-    let event = request.body;
-    console.log("event", event);
-    const endpointSecret = "whsec_.....,";
-    console.log("endpointSecret", endpointSecret);
-
-    response.send();
-  }
+  stripePaymentStatus
 );
 
 const PORT = process.env.PORT || 5000;
