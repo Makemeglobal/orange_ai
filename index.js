@@ -6,6 +6,7 @@ require("dotenv").config();
 const { swaggerUi, specs } = require("./config/swagger");
 
 const cors = require("cors");
+const { stripePaymentStatus } = require("./controller/authController");
 connectDB();
 const app = express();
 
@@ -21,6 +22,8 @@ app.use(cors());
 // app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 app.use(bodyParser.json());
 app.use("/api/auth", authRoutes);
+app.use("/api/auth/webhook", bodyParser.raw({ type: "*/*" }));
+app.use("/api/auth/webhook", stripePaymentStatus);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
