@@ -9,6 +9,10 @@ const sendInvitationEmail = require("../utils/sendInvitationEmail");
 const InvitationToken = require("../model/InvitationToken");
 const mongoose = require("mongoose");
 const Plan = require("../model/Plan");
+const Stripe = require("stripe");
+const Transaction = require("../model/Transaction");
+const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET; // The endpoint secret you get from Stripe dashboard
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
 exports.signup = async (req, res) => {
   const { fullName, country, email, phone, password, invited } = req.body;
@@ -310,5 +314,87 @@ exports.addPlan = async (req, res) => {
   } catch (err) {
     console.log("err", err);
     res.status(500).send("Server error");
+  }
+};
+
+exports.stripeSession = async (req, res) => {
+  try {
+    const user = await User.findById(req.user);
+    const { planId } = req.body;
+    let plan = await Plan.findById(planId);
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: plan.title,
+            },
+            unit_amount: plan.price * 100,
+          },
+          quantity: 1,
+        },
+      ],
+      mode: "payment",
+      success_url: "https://www.poweredbyorange.ai/invite", // URL to redirect to after a successful payment
+      cancel_url: "https://www.poweredbyorange.ai/not-successfull-order", // URL to redirect to if the payment is canceled
+    });
+
+    await Transaction.create({
+      planId,
+      sessionId: session.id,
+      sessionUrl: session.url,
+      status: "pending",
+      user,
+      amount: plan.price * 100,
+    });
+
+    res.status(200).json({
+      success: true,
+      url: session.url,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.stripePaymentStatus = async (req, res) => {
+  const sig = req.headers["stripe-signature"];
+  const event = req.body;
+  try {
+    // Verify webhook signature
+    const event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+    console.log("event", event);
+    // Handle different event types
+    switch (event.type) {
+      case "checkout.session.completed":
+        const session = event.data.object;
+        // Handle successful payment here
+        await Transaction.findOneAndUpdate(
+          { sessionId: session.id },
+          { status: "completed" },
+          { new: true } // Return the updated document
+        );
+        break;
+      case "checkout.session.expired":
+        const expiredSession = event.data.object;
+        // Handle payment cancellation or expiration here
+        console.log(`Session ${expiredSession.id} has expired.`);
+        await Transaction.findOneAndUpdate(
+          { sessionId: expiredSession.id },
+          { status: "expired" },
+          { new: true } // Return the updated document
+        );
+        break;
+      default:
+        console.log(`Unhandled event type ${event.type}`);
+    }
+
+    // Return a response to acknowledge receipt of the event
+    res.status(200).json({ received: true });
+  } catch (err) {
+    console.error(`Webhook error: ${err.message}`);
+    res.status(400).send(`Webhook Error: ${err.message}`);
   }
 };

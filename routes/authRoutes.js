@@ -9,6 +9,7 @@ router.post("/signup", authController.signup);
 router.post("/users/sub-users", authController.getSubUsersById);
 const Stripe = require("stripe");
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+const bodyParser = require("body-parser");
 
 /**
  * @swagger
@@ -285,5 +286,12 @@ router.post(
 //
 
 router.post("/plan-add", authController.addPlan);
+
+router.post("/create-checkout-session", authController.stripeSession);
+router.post(
+  "/webhook",
+  bodyParser.raw({ type: "application/json" }),
+  authController.stripePaymentStatus
+);
 
 module.exports = router;
