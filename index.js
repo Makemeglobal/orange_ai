@@ -8,36 +8,27 @@ const Stripe = require("stripe");
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 const cors = require("cors");
 const { stripePaymentStatus } = require("./controller/authController");
+
 connectDB();
 const app = express();
-app.use(express.json());
-// const corsOptions = {
-//   origin: ['https://www.poweredbyorange.ai', 'http://localhost'],
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-//   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', ""],
-//   credentials: true
-// };
 
+// General middlewares
 app.use(cors());
-// app.use(cors)
-// app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
-app.use(bodyParser.json());
-app.use("/api/auth", authRoutes);
-// app.use("/api/auth/webhook", bodyParser.raw({ type: "*/*" }));
-// app.use("/api/auth/webhook", stripePaymentStatus);
+app.use(bodyParser.json()); // This is used for parsing JSON bodies for other routes
+
+// Route-specific middleware for raw body
 app.post(
   "/api/auth/webhook",
-  express.raw({ type: "application/json" }),
+  express.raw({ type: "application/json" }), // Use express.raw to get the raw body for verification
   (request, response) => {
     let event = request.body;
-    console.log("event", event);
     const endpointSecret = process.env.END_POINT_SECRET;
-    console.log("endpointSecret", endpointSecret);
+
     if (endpointSecret) {
       const signature = request.headers["stripe-signature"];
       try {
         event = stripe.webhooks.constructEvent(
-          request.body,
+          request.body, // Raw body here
           signature,
           endpointSecret
         );
@@ -46,6 +37,7 @@ app.post(
         return response.sendStatus(400);
       }
     }
+
     let subscription;
     let status;
 
@@ -54,14 +46,18 @@ app.post(
         subscription = event.data.object;
         status = subscription.status;
         console.log(`Subscription status is ${status}.`);
-
         break;
       default:
         console.log(`Unhandled event type ${event.type}.`);
     }
+
     response.send();
   }
 );
+
+app.use("/api/auth", authRoutes);
+// Uncomment if using Swagger
+// app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
