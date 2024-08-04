@@ -25,7 +25,6 @@ app.use(bodyParser.json());
 app.use("/api/auth", authRoutes);
 // app.use("/api/auth/webhook", bodyParser.raw({ type: "*/*" }));
 // app.use("/api/auth/webhook", stripePaymentStatus);
-express.raw({ type: "application/json" });
 app.post(
   "/api/auth/webhook",
   express.raw({ type: "application/json" }),
