@@ -4,7 +4,8 @@ const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 require("dotenv").config();
 const { swaggerUi, specs } = require("./config/swagger");
-
+const Stripe = require("stripe");
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 const cors = require("cors");
 const { stripePaymentStatus } = require("./controller/authController");
 connectDB();
