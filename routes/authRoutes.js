@@ -289,4 +289,10 @@ router.post("/plan-add", authController.addPlan);
 
 router.post("/create-checkout-session", authController.stripeSession);
 
+router.post(
+  "/webhook",
+  bodyParser.raw({ type: "application/json" }),
+  authController.stripePaymentStatus
+);
+
 module.exports = router;

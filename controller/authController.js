@@ -371,21 +371,13 @@ exports.stripePaymentStatus = async (req, res) => {
       case "checkout.session.completed":
         const session = event.data.object;
         // Handle successful payment here
-        await Transaction.findOneAndUpdate(
-          { sessionId: session.id },
-          { status: "completed" },
-          { new: true } // Return the updated document
-        );
+
         break;
       case "checkout.session.expired":
         const expiredSession = event.data.object;
         // Handle payment cancellation or expiration here
         console.log(`Session ${expiredSession.id} has expired.`);
-        await Transaction.findOneAndUpdate(
-          { sessionId: expiredSession.id },
-          { status: "expired" },
-          { new: true } // Return the updated document
-        );
+
         break;
       default:
         console.log(`Unhandled event type ${event.type}`);
