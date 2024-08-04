@@ -4,12 +4,11 @@ const router = express.Router();
 const authController = require("../controller/authController");
 const upload = require("../middleware/multerConfig");
 const { authMiddleware } = require("../middleware/auth");
-const  Feedback = require("../model/Feedback")
+const Feedback = require("../model/Feedback");
 router.post("/signup", authController.signup);
 router.post("/users/sub-users", authController.getSubUsersById);
-const Stripe = require('stripe');
-const stripe = Stripe(process.env.STRIPE_SECRET_KEY);  
-
+const Stripe = require("stripe");
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
 /**
  * @swagger
@@ -51,30 +50,35 @@ const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
  */
 router.post("/verify-otp", authController.verifyOtpAndCreateUser);
 
-
-
-router.get('/feedback', async (req, res) => {
-    try {
-        const feedbacks = await Feedback.find();
-        res.status(200).json(feedbacks);
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to retrieve feedback' });
-    }
+router.get("/feedback", async (req, res) => {
+  try {
+    const feedbacks = await Feedback.find();
+    res.status(200).json(feedbacks);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to retrieve feedback" });
+  }
 });
-router.post('/feedback', async (req, res) => {
-    const { name, email, message ,prompt,reason,category} = req.body;
+router.post("/feedback", async (req, res) => {
+  const { name, email, message, prompt, reason, category } = req.body;
 
-    if (!name || !email || !message) {
-        return res.status(400).json({ error: 'All fields are required' });
-    }
+  if (!name || !email || !message) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
 
-    try {
-        const newFeedback = new Feedback({ name, email, message ,prompt,reason,category});
-        await newFeedback.save();
-        res.status(201).json(newFeedback);
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to save feedback' });
-    }
+  try {
+    const newFeedback = new Feedback({
+      name,
+      email,
+      message,
+      prompt,
+      reason,
+      category,
+    });
+    await newFeedback.save();
+    res.status(201).json(newFeedback);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to save feedback" });
+  }
 });
 /**
  * @swagger
@@ -257,24 +261,29 @@ router.delete("/delete-sub-user", authController.deleteSubUser);
 router.put("/update-profile", authMiddleware, authController.updateProfile);
 router.get("/get-profile", authMiddleware, authController.getProfile);
 
-router.post('/charge', async (req, res) => {
-    const { amount, currency, source } = req.body;
+router.post("/charge", async (req, res) => {
+  const { amount, currency, source } = req.body;
 
-    try {
-        const charge = await stripe.charges.create({
-            amount,
-            currency,
-            source,
-            description: 'Charge for payment'
-        });
-        res.status(200).json({ success: true, charge });
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to create charge' });
-    }
+  try {
+    const charge = await stripe.charges.create({
+      amount,
+      currency,
+      source,
+      description: "Charge for payment",
+    });
+    res.status(200).json({ success: true, charge });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to create charge" });
+  }
 });
 router.post(
   "/upload-image",
   upload.single("image"),
   authController.uploadImage
 );
+
+//
+
+router.post("/plan-add", authController.addPlan);
+
 module.exports = router;
