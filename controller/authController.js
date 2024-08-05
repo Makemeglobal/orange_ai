@@ -194,7 +194,8 @@ exports.acceptInvitation = async (req, res) => {
     const savedToken = token;
     await InvitationToken.deleteOne({ token });
     res.redirect(
-      `https://orange-ai-5c137d33eeeb.herokuapp.com/api/auth/signup?token=${savedToken}`
+      // ''
+      `http://localhost:3000/signup?token=${savedToken}`
     );
     res
       .status(201)
