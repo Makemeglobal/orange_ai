@@ -261,15 +261,23 @@ router.post('/charge', async (req, res) => {
     const { amount, currency, source } = req.body;
 
     try {
+        // Validate request data
+        if (!amount || !currency || !source) {
+            return res.status(400).json({ error: 'Invalid request, missing parameters' });
+        }
+
+        // Create a charge using the provided source (e.g., a card token)
         const charge = await stripe.charges.create({
-            amount,
+            amount: Math.round(amount * 100), // Amount should be in the smallest unit (e.g., cents for USD)
             currency,
             source,
-            description: 'Charge for payment'
+            description: 'Charge for payment',
         });
+
         res.status(200).json({ success: true, charge });
     } catch (err) {
-        res.status(500).json({ error: 'Failed to create charge' });
+        console.error('Error creating charge:', err);
+        res.status(500).json({ error: 'Failed to create charge', details: err.message });
     }
 });
 router.post(
