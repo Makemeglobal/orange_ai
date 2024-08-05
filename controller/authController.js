@@ -53,7 +53,7 @@ exports.verifyOtpAndCreateUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     if (invited) {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(invited, process.env.JWT_SECRET);
       const { inviterId } = decoded;
       await User.findByIdAndUpdate(inviterId, { $push: { subUsers: email } });
       const invitedUser = await User.findOne({email:email});
