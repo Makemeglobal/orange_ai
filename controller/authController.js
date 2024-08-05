@@ -41,11 +41,12 @@ exports.signup = async (req, res) => {
 
 exports.verifyOtpAndCreateUser = async (req, res) => {
   const { email, otp, fullName, country, phone, password, invited ,token } = req.body;
-  console.log(otp);
+  console.log(invited);
 
   try {
     const otpRecord = await OTP.findOne({ email, otp });
-
+    const otpR= await OTP.find();
+    console.log(otpR)
     if (!otpRecord) {
       return res.status(400).json({ message: "Invalid OTP" });
     }
@@ -53,18 +54,26 @@ exports.verifyOtpAndCreateUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     if (invited) {
+
       const decoded = jwt.verify(invited, process.env.JWT_SECRET);
       const { inviterId } = decoded;
       await User.findByIdAndUpdate(inviterId, { $push: { subUsers: email } });
       const invitedUser = await User.findOne({email:email});
-      await User.findByIdAndUpdate(invitedUser.id, {
-        fullName,
-        country,
-        phone,
-        password: hashedPassword,
-        userType: "subUser",
-        inviteAccepted: true,
-      });
+      console.log(invitedUser)
+   try{
+    const created =  await User.findByIdAndUpdate(invitedUser.id, {
+      fullName,
+      country,
+      phone,
+      password: hashedPassword,
+      userType: "subUser",
+      inviteAccepted: true,
+    });
+
+    console.log(created)
+   }catch(err){
+    console.log(err)
+   }
     } else {
       await User.create({
         fullName,
@@ -77,7 +86,7 @@ exports.verifyOtpAndCreateUser = async (req, res) => {
     }
 
     await OTP.deleteOne({ email, otp });
-
+    console.log('done')
     res.status(201).json({ message: "User created successfully" });
   } catch (error) {
     console.log(error)
@@ -195,7 +204,8 @@ exports.acceptInvitation = async (req, res) => {
     await InvitationToken.deleteOne({ token });
     res.redirect(
       // ''
-      `http://localhost:3000/signup?token=${savedToken}`
+      // `http://localhost:3000/signup?token=${savedToken}`,
+      `https://orange-ai-5c137d33eeeb.herokuapp.com/api/auth/signup?token=${savedToken}`
     );
     res
       .status(201)

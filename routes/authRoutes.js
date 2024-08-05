@@ -63,12 +63,21 @@ router.get("/feedback", async (req, res) => {
 
 router.get("/get-users" , async (req,res)=>{
     try{
+
+        // const emails = ['harshvchawla998@gmail.com' , 'forbgmi2307@gmail.com' , 'harshvchawla996@gmail.com'];
+        // emails.forEach((user) =>{
+        //     User.deleteOne({email:user}).then(()=>{
+        //         console.log('deleted')
+        //     }).catch((err)=>{
+        //         console.log(err)
+        //     });
+        // })
         const users = await User.find();
         users.forEach(async (user)=>{
             await User.findByIdAndUpdate(user._id,{
                 userType:'user'
             });
-        console.log('hi')
+        // console.log('hi')
         }
         
     )
