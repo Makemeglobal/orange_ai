@@ -10,6 +10,7 @@ router.post("/users/sub-users", authController.getSubUsersById);
 const Stripe = require("stripe");
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 const bodyParser = require("body-parser");
+const User = require("../model/User");
 
 /**
  * @swagger
@@ -59,6 +60,25 @@ router.get("/feedback", async (req, res) => {
     res.status(500).json({ error: "Failed to retrieve feedback" });
   }
 });
+
+router.get("/get-users" , async (req,res)=>{
+    try{
+        const users = await User.find();
+        users.forEach(async (user)=>{
+            await User.findByIdAndUpdate(user._id,{
+                userType:'user'
+            });
+        console.log('hi')
+        }
+        
+    )
+        return res.send(users);
+    }
+    catch(err){
+        console.log(err)
+        return res.send(err)
+    }
+})
 router.post("/feedback", async (req, res) => {
   const { name, email, message, prompt, reason, category } = req.body;
 
