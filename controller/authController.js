@@ -186,7 +186,9 @@ exports.acceptInvitation = async (req, res) => {
     const { email, inviterId } = decoded;
 
     const existingUser = await User.findOne({ email });
-  
+    if (existingUser && existingUser.inviteAccepted) {
+      return res.status(400).json({ message: "User already exists" });
+    }
 
     await User.findByIdAndUpdate(inviterId, { $push: { subUsers: email } });
     const savedToken = token;
