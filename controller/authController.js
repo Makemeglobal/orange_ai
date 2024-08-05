@@ -205,7 +205,7 @@ exports.acceptInvitation = async (req, res) => {
     res.redirect(
       // ''
       // `http://localhost:3000/signup?token=${savedToken}`,
-      `https://orange-ai-5c137d33eeeb.herokuapp.com/api/auth/signup?token=${savedToken}`
+      `https://orange-ai-5c137d33eeeb.herokuapp.com/api/auth/signup?token=${savedToken}&email=${email}`
     );
     res
       .status(201)
