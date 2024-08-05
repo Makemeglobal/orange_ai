@@ -275,7 +275,7 @@ exports.resetPassword = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user); // Get user ID from the token
+    const user = await User.findById(req.user); 
     if (!user) {
       return res.status(400).json({ Message: "User not found" });
     }
@@ -300,7 +300,7 @@ exports.updateProfile = async (req, res) => {
 
 exports.getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user).populate("Plan"); // Get user ID from the token
+    const user = await User.findById(req.user).populate("Plan"); 
     if (!user) {
       return res.status(400).json({ Message: "User not found" });
     }
