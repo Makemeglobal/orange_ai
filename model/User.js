@@ -1,14 +1,17 @@
 const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema({
-  fullName: { type: String, required: true },
-  country: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  phone: { type: String, required: true },
-  password: { type: String, required: true },
+  fullName: { type: String, required: false },
+  country: { type: String, required: false },
+  email: { type: String, required :true, unique: true },
+  phone: { type: String, required:false },
+  password: { type: String, required: false },
   userType: {
     type: String,
     enum: ["user", "subUser"],
+  },
+  inviteAccepted:{
+    type:Boolean,
   },
   subUsers: [{ type: String }],
   profilePicture: { type: String, required: false },

@@ -21,7 +21,10 @@ exports.signup = async (req, res) => {
     const userExists = await User.findOne({ email });
 
     if (userExists) {
-      return res.status(400).json({ message: "User already exists" });
+      if (!invited) {
+        return res.status(400).json({ message: "User already exists" });
+      }
+
     }
 
     const otp = generateOTP();
@@ -37,7 +40,7 @@ exports.signup = async (req, res) => {
 };
 
 exports.verifyOtpAndCreateUser = async (req, res) => {
-  const { email, otp, fullName, country, phone, password, invited } = req.body;
+  const { email, otp, fullName, country, phone, password, invited ,token } = req.body;
   console.log(otp);
 
   try {
@@ -53,13 +56,14 @@ exports.verifyOtpAndCreateUser = async (req, res) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const { inviterId } = decoded;
       await User.findByIdAndUpdate(inviterId, { $push: { subUsers: email } });
-      await User.create({
+      const invitedUser = await User.findOne({email:email});
+      await User.findByIdAndUpdate(invitedUser.id, {
         fullName,
         country,
-        email,
         phone,
         password: hashedPassword,
         userType: "subUser",
+        inviteAccepted: true,
       });
     } else {
       await User.create({
@@ -76,6 +80,7 @@ exports.verifyOtpAndCreateUser = async (req, res) => {
 
     res.status(201).json({ message: "User created successfully" });
   } catch (error) {
+    console.log(error)
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -160,8 +165,12 @@ exports.inviteSubUser = async (req, res) => {
     console.log(iToken, "ji");
 
     await sendInvitationEmail(email, inviter.fullName, token);
+    const user = await User.create({
+      email: email,
+      inviteAccepted: false,
+    });
 
-    res.status(200).json({ message: "Invitation sent" });
+    res.status(200).json({ message: "Invitation sent", user });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
     console.log(error);
@@ -175,7 +184,6 @@ exports.acceptInvitation = async (req, res) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const { email, inviterId } = decoded;
-    console.log(email, inviterId);
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -192,6 +200,7 @@ exports.acceptInvitation = async (req, res) => {
       .status(201)
       .json({ message: "User created successfully and added as sub-user" });
   } catch (error) {
+    console.log(error)
     res.status(500).json({ message: "Server error" });
   }
 };
