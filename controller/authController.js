@@ -8,6 +8,11 @@ require("dotenv").config();
 const sendInvitationEmail = require("../utils/sendInvitationEmail");
 const InvitationToken = require("../model/InvitationToken");
 const mongoose = require("mongoose");
+const Plan = require("../model/Plan");
+const Stripe = require("stripe");
+const Transaction = require("../model/Transaction");
+const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET; // The endpoint secret you get from Stripe dashboard
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
 exports.signup = async (req, res) => {
   const { fullName, country, email, phone, password, invited } = req.body;
@@ -26,7 +31,7 @@ exports.signup = async (req, res) => {
 
     res.status(200).json({ message: "OTP sent to email" });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -63,7 +68,7 @@ exports.verifyOtpAndCreateUser = async (req, res) => {
         email,
         phone,
         password: hashedPassword,
-        userType:'user'
+        userType: "user",
       });
     }
 
@@ -110,14 +115,12 @@ exports.getSubUsersById = async (req, res) => {
       return res.status(400).json({ message: "Email is required" });
     }
 
- 
     const user = await User.findOne({ email }).populate("subUsers");
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    
     const allUsers = await Promise.all(
       user.subUsers.map(async (subUserEmail) => {
         const foundUser = await User.findOne({ email: subUserEmail });
@@ -132,14 +135,13 @@ exports.getSubUsersById = async (req, res) => {
   }
 };
 
-
 exports.inviteSubUser = async (req, res) => {
   const { email } = req.body;
   console.log(req.body);
   const { inviterId } = req.body;
-  console.log(typeof inviterId)
+  console.log(typeof inviterId);
   try {
-    const inviter = await User.findOne({_id:inviterId});
+    const inviter = await User.findOne({ _id: inviterId });
     console.log(inviter);
     if (!inviter) {
       return res.status(400).json({ message: "Inviter not found" });
@@ -196,7 +198,7 @@ exports.acceptInvitation = async (req, res) => {
 
 exports.deleteSubUser = async (req, res) => {
   const { subUserId } = req.body;
-  const { inviterId } = req.body; 
+  const { inviterId } = req.body;
 
   try {
     await User.findByIdAndUpdate(inviterId, { $pull: { subUsers: subUserId } });
@@ -278,7 +280,7 @@ exports.updateProfile = async (req, res) => {
 
 exports.getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user); // Get user ID from the token
+    const user = await User.findById(req.user).populate("Plan"); // Get user ID from the token
     if (!user) {
       return res.status(400).json({ Message: "User not found" });
     }
@@ -299,4 +301,92 @@ exports.uploadImage = async (req, res) => {
     success: true,
     imageUrl,
   });
+};
+
+exports.addPlan = async (req, res) => {
+  try {
+    const { price, duration, title, description } = req.body;
+    let plan = await Plan.create({ price, duration, title, description });
+    res.status(200).json({
+      success: true,
+      plan,
+    });
+  } catch (err) {
+    console.log("err", err);
+    res.status(500).send("Server error");
+  }
+};
+
+exports.stripeSession = async (req, res) => {
+  try {
+    const user = await User.findById(req.user);
+    const { planId } = req.body;
+    let plan = await Plan.findById(planId);
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: plan.title,
+            },
+            unit_amount: plan.price * 100,
+          },
+          quantity: 1,
+        },
+      ],
+      mode: "payment",
+      success_url: "https://www.poweredbyorange.ai/invite", // URL to redirect to after a successful payment
+      cancel_url: "https://www.poweredbyorange.ai/not-successfull-order", // URL to redirect to if the payment is canceled
+    });
+
+    await Transaction.create({
+      planId,
+      sessionId: session.id,
+      sessionUrl: session.url,
+      status: "pending",
+      user,
+      amount: plan.price * 100,
+    });
+
+    res.status(200).json({
+      success: true,
+      url: session.url,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.stripePaymentStatus = async (req, res) => {
+  const sig = req.headers["stripe-signature"];
+  const event = req.body;
+  try {
+    // Verify webhook signature
+    const event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+    console.log("event", event);
+    // Handle different event types
+    switch (event.type) {
+      case "checkout.session.completed":
+        const session = event.data.object;
+        // Handle successful payment here
+
+        break;
+      case "checkout.session.expired":
+        const expiredSession = event.data.object;
+        // Handle payment cancellation or expiration here
+        console.log(`Session ${expiredSession.id} has expired.`);
+
+        break;
+      default:
+        console.log(`Unhandled event type ${event.type}`);
+    }
+
+    // Return a response to acknowledge receipt of the event
+    res.status(200).json({ received: true });
+  } catch (err) {
+    console.error(`Webhook error: ${err.message}`);
+    res.status(400).send(`Webhook Error: ${err.message}`);
+  }
 };
