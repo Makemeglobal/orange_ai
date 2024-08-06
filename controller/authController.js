@@ -41,7 +41,7 @@ exports.signup = async (req, res) => {
 
 exports.verifyOtpAndCreateUser = async (req, res) => {
   const { email, otp, fullName, country, phone, password, invited ,token } = req.body;
-  console.log(invited);
+  
 
   try {
     const otpRecord = await OTP.findOne({ email, otp });
@@ -300,7 +300,8 @@ exports.updateProfile = async (req, res) => {
 
 exports.getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user).populate("Plan"); 
+    const user = await User.findById(req.user); 
+    console.log(user)
     if (!user) {
       return res.status(400).json({ Message: "User not found" });
     }
