@@ -205,7 +205,7 @@ exports.acceptInvitation = async (req, res) => {
     res.redirect(
       // ''
       // `http://localhost:3000/signup?token=${savedToken}`,
-      `https://orange-ai-5c137d33eeeb.herokuapp.com/api/auth/signup?token=${savedToken}&email=${email}`
+      `https://www.poweredbyorange.ai/api/auth/signup?token=${savedToken}&email=${email}`
     );
     res
       .status(201)
@@ -383,28 +383,27 @@ exports.stripeSession = async (req, res) => {
 exports.stripePaymentStatus = async (req, res) => {
   const sig = req.headers["stripe-signature"];
   const event = req.body;
+  console.log(sig)
   try {
-    // Verify webhook signature
+  
     const event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
     console.log("event", event);
-    // Handle different event types
+    
     switch (event.type) {
       case "checkout.session.completed":
         const session = event.data.object;
-        // Handle successful payment here
+       
 
         break;
       case "checkout.session.expired":
         const expiredSession = event.data.object;
-        // Handle payment cancellation or expiration here
+      
         console.log(`Session ${expiredSession.id} has expired.`);
 
         break;
       default:
         console.log(`Unhandled event type ${event.type}`);
     }
-
-    // Return a response to acknowledge receipt of the event
     res.status(200).json({ received: true });
   } catch (err) {
     console.error(`Webhook error: ${err.message}`);
