@@ -129,7 +129,8 @@ exports.getSubUsersById = async (req, res) => {
       return res.status(400).json({ message: "Email is required" });
     }
 
-    const user = await User.findOne({ email }).populate("subUsers");
+    const user = await User.findOne({email: email }).populate("subUsers");
+    console.log(user)
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -138,6 +139,7 @@ exports.getSubUsersById = async (req, res) => {
     const allUsers = await Promise.all(
       user.subUsers.map(async (subUserEmail) => {
         const foundUser = await User.findOne({ email: subUserEmail });
+        console.log(subUserEmail , foundUser)
         return foundUser;
       })
     );
@@ -365,8 +367,8 @@ exports.stripeSession = async (req, res) => {
         },
       ],
       mode: "payment",
-      success_url: "https://www.poweredbyorange.ai/invite", // URL to redirect to after a successful payment
-      cancel_url: "https://www.poweredbyorange.ai/not-successfull-order", // URL to redirect to if the payment is canceled
+      success_url: "https://www.poweredbyorange.ai/invite",
+      cancel_url: "https://www.poweredbyorange.ai/not-successfull-order", 
     });
 
     await Transaction.create({

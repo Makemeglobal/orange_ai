@@ -12,6 +12,7 @@ const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 const bodyParser = require("body-parser");
 const User = require("../model/User");
 const Otp = require("../model/Otp");
+const Transaction = require("../model/Transaction");
 
 /**
  * @swagger
@@ -74,14 +75,14 @@ router.get("/get-users" , async (req,res)=>{
         //     });
         // })
         const users = await User.find();
-        users.forEach(async (user)=>{
-            await User.findByIdAndUpdate(user._id,{
-                userType:'user'
-            });
-        // console.log('hi')
-        }
+    //     users.forEach(async (user)=>{
+    //         await User.findByIdAndUpdate(user._id,{
+    //             userType:'user'
+    //         });
+    //     // console.log('hi')
+    //     }
         
-    )
+    // )
         return res.send(users);
     }
     catch(err){
@@ -100,15 +101,15 @@ router.get('/get-otp' ,async (req,res) => {
   }
 })
 
-router.get('/get-otp' ,async (req,res) => {
-  try{
-    const otps = await Otp.find();
-    return res.send(otps);
-  }
-  catch(err){
-    console.log(err)
-  }
-})
+// router.get('/get-otp' ,async (req,res) => {
+//   try{
+//     const otps = await Otp.find();
+//     return res.send(otps);
+//   }
+//   catch(err){
+//     console.log(err)
+//   }
+// })
 router.post("/feedback", async (req, res) => {
   const { name, email, message, prompt, reason, category } = req.body;
 
@@ -184,6 +185,16 @@ router.post("/login", authController.login);
  */
 router.post("/forgot-password", authController.forgotPassword);
 
+router.get('/transactions' , async (req,res) => {
+try{
+  const transactions =  await Transaction.find();
+  return res.send(transactions);
+}
+catch(err){
+  console.log(err);
+  return res.send(err)
+}
+})
 /**
  * @swagger
  * /api/auth/reset-password:
