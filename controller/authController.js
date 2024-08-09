@@ -130,6 +130,7 @@ exports.getSubUsersById = async (req, res) => {
     }
 
     const user = await User.findOne({email: email }).populate("subUsers");
+  
     console.log(user)
 
     if (!user) {
@@ -138,11 +139,15 @@ exports.getSubUsersById = async (req, res) => {
 
     const allUsers = await Promise.all(
       user.subUsers.map(async (subUserEmail) => {
-        const foundUser = await User.findOne({ email: subUserEmail });
+        const foundUser = await User.findOne({ email: subUserEmail })
         console.log(subUserEmail , foundUser)
         return foundUser;
       })
     );
+
+    allUsers.forEach((user)=>{
+      user.password=undefined;
+    })
 
     res.status(200).json(allUsers);
   } catch (error) {
