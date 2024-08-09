@@ -157,11 +157,10 @@ exports.inviteSubUser = async (req, res) => {
   try {
     const inviter = await User.findOne({ _id: inviterId });
     const userAlready = await User.findOne({email:email});
-    if(!userAlready.inviteAccepted){
-      await User.findByIdAndDelete(userAlready?.id);
-    }
-    else{
-      return res.send('user already invited and accepted ').status(403);
+    if (userAlready && !userAlready.inviteAccepted) {
+      await User.findByIdAndDelete(userAlready.id);
+    } else if (userAlready && userAlready.inviteAccepted) {
+      return res.status(403).send('User already invited and accepted');
     }
     
     console.log(inviter);
