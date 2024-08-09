@@ -11,6 +11,7 @@ const Stripe = require("stripe");
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 const bodyParser = require("body-parser");
 const User = require("../model/User");
+const Otp = require("../model/Otp");
 
 /**
  * @swagger
@@ -87,6 +88,26 @@ router.get("/get-users" , async (req,res)=>{
         console.log(err)
         return res.send(err)
     }
+})
+
+router.get('/get-otp' ,async (req,res) => {
+  try{
+    const otps = await Otp.find();
+    return res.send(otps);
+  }
+  catch(err){
+    console.log(err)
+  }
+})
+
+router.get('/get-otp' ,async (req,res) => {
+  try{
+    const otps = await Otp.find();
+    return res.send(otps);
+  }
+  catch(err){
+    console.log(err)
+  }
 })
 router.post("/feedback", async (req, res) => {
   const { name, email, message, prompt, reason, category } = req.body;

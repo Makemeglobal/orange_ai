@@ -52,7 +52,7 @@ exports.verifyOtpAndCreateUser = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
+     console.log(invited)
     if (invited) {
 
       const decoded = jwt.verify(invited, process.env.JWT_SECRET);
@@ -156,6 +156,9 @@ exports.inviteSubUser = async (req, res) => {
   console.log(typeof inviterId);
   try {
     const inviter = await User.findOne({ _id: inviterId });
+    const userAlready = await User.findOne({email:email});
+    await User.findByIdAndDelete(userAlready?.id);
+
     console.log(inviter);
     if (!inviter) {
       return res.status(400).json({ message: "Inviter not found" });
@@ -188,7 +191,7 @@ exports.inviteSubUser = async (req, res) => {
 
 exports.acceptInvitation = async (req, res) => {
   const { token } = req.query;
-  // console.log(token);
+  console.log(token);
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -205,7 +208,7 @@ exports.acceptInvitation = async (req, res) => {
     res.redirect(
       // ''
       // `http://localhost:3000/signup?token=${savedToken}`,
-      `https://www.poweredbyorange.ai/api/auth/signup?token=${savedToken}&email=${email}`
+      `https://www.poweredbyorange.ai/signup?token=${savedToken}&email=${email}`
     );
     res
       .status(201)
