@@ -356,7 +356,29 @@ exports.stripeSession = async (req, res) => {
   try {
     const user = await User.findById(req.user);
     const { planId } = req.body;
+    console.log(user)
     let plan = await Plan.findById(planId);
+    // const session = await stripe.checkout.sessions.create({
+    //   payment_method_types: ["card"],
+    //   line_items: [
+    //     {
+    //       price_data: {
+    //         currency: "usd",
+    //         product_data: {
+    //           name: plan.title,
+    //         },
+    //         unit_amount: plan.price * 100,
+    //       },
+    //       quantity: 1,
+    //     },
+    //   ],
+    //   mode: "payment",
+    //   // http://localhost:3000
+    //   // success_url: "https://www.poweredbyorange.ai/invite",
+    //   success_url: "http://localhost:3000/invite",
+    //   cancel_url: "https://www.poweredbyorange.ai/not-successfull-order", 
+    // });
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
@@ -374,50 +396,64 @@ exports.stripeSession = async (req, res) => {
       mode: "payment",
       success_url: "https://www.poweredbyorange.ai/invite",
       cancel_url: "https://www.poweredbyorange.ai/not-successfull-order", 
-    });
+  });
+const date = new Date()
 
     await Transaction.create({
       planId,
+      date:date,
       sessionId: session.id,
       sessionUrl: session.url,
       status: "pending",
-      user,
+      user:user.id,
       amount: plan.price * 100,
     });
 
+    console.log(session)
     res.status(200).json({
       success: true,
       url: session.url,
     });
   } catch (error) {
+    console.log(error)
     res.status(500).json({ error: error.message });
   }
 };
 
 exports.stripePaymentStatus = async (req, res) => {
   const sig = req.headers["stripe-signature"];
-  const event = req.body;
-  console.log(sig)
+
   try {
-  
+    // Verify the event by recontructing it using the Stripe secret
     const event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
     console.log("event", event);
-    
+
     switch (event.type) {
       case "checkout.session.completed":
         const session = event.data.object;
-       
 
+        await Transaction.findOneAndUpdate(
+          { sessionId: session.id },
+          { status: 'successful' }
+        );
+        console.log(`Session ${session.id} has been completed successfully.`);
         break;
+
       case "checkout.session.expired":
         const expiredSession = event.data.object;
-      
-        console.log(`Session ${expiredSession.id} has expired.`);
 
+  
+        await Transaction.findOneAndUpdate(
+          { sessionId: expiredSession.id },
+          { status: 'expired' }
+        );
+        console.log(`Session ${expiredSession.id} has expired.`);
         break;
+
       default:
         console.log(`Unhandled event type ${event.type}`);
     }
+
     res.status(200).json({ received: true });
   } catch (err) {
     console.error(`Webhook error: ${err.message}`);

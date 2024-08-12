@@ -63,6 +63,26 @@ router.get("/feedback", async (req, res) => {
   }
 });
 
+
+router.get('/get-transactions' , authMiddleware ,  async (req,res) => {
+
+
+  try {
+    const transaction = await Transaction.find({user:req.user})  .populate({
+      path: 'user',
+      select: '-password', // Exclude the password field
+    });
+    ;
+    return res.send(transaction).status(200);
+  
+    
+  } catch (error) {
+    console.log(error);
+    return res.send(error)
+  }
+}
+)
+
 router.get("/get-users" , async (req,res)=>{
     try{
 
@@ -346,9 +366,9 @@ router.post(
 
 //
 
-router.post("/plan-add", authController.addPlan);
+router.post("/plan-add",authMiddleware, authController.addPlan);
 
-router.post("/create-checkout-session", authController.stripeSession);
+router.post("/create-checkout-session",authMiddleware, authController.stripeSession);
 
 router.post(
   "/webhook",
