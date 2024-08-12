@@ -193,6 +193,8 @@ exports.inviteSubUser = async (req, res) => {
       inviteAccepted: false,
     });
 
+    await User.findByIdAndUpdate(inviterId, { $push: { subUsers: email } });
+
     res.status(200).json({ message: "Invitation sent", user });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
@@ -213,7 +215,7 @@ exports.acceptInvitation = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    await User.findByIdAndUpdate(inviterId, { $push: { subUsers: email } });
+   // await User.findByIdAndUpdate(inviterId, { $push: { subUsers: email } });
     const savedToken = token;
     await InvitationToken.deleteOne({ token });
     res.redirect(
