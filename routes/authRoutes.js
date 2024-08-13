@@ -342,7 +342,7 @@ router.get("/accept-invitation", authController.acceptInvitation);
 router.delete("/delete-sub-user", authController.deleteSubUser);
 router.put("/update-profile", authMiddleware, authController.updateProfile);
 router.get("/get-profile", authMiddleware, authController.getProfile);
-
+router.post('/resend-otp' , authController.resendOtp);
 router.post("/charge", async (req, res) => {
   const { amount, currency, source } = req.body;
 
