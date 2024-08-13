@@ -52,8 +52,10 @@ exports.verifyOtpAndCreateUser = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-     console.log(invited)
-    if (invited) {
+    
+    console.log(invited)
+    if (invited ) {
+      console.log('hi')
 
       const decoded = jwt.verify(invited, process.env.JWT_SECRET);
       const { inviterId } = decoded;
