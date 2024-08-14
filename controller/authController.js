@@ -154,8 +154,9 @@ exports.getSubUsersById = async (req, res) => {
     if (!email) {
       return res.status(400).json({ message: "Email is required" });
     }
+    console.log(email)
 
-    const user = await User.findOne({email: email }).populate("subUsers");
+    const user = await User.findOne({email: email.toLowerCase() }).populate("subUsers");
   
     console.log(user)
 
@@ -172,7 +173,9 @@ exports.getSubUsersById = async (req, res) => {
     );
 
     allUsers.forEach((user)=>{
-      user.password=undefined;
+      if(user?.password){
+        user.password=undefined;
+      }
     })
 
     res.status(200).json(allUsers);
