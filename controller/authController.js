@@ -294,27 +294,42 @@ exports.forgotPassword = async (req, res) => {
   }
 };
 
-exports.resetPassword = async (req, res) => {
-  const { email, otp, newPassword } = req.body;
+exports.verifyOTP = async (req, res) => {
+  const { email, otp } = req.body;
 
+  console.log(email,otp)
   try {
     const otpRecord = await OTP.findOne({ email, otp });
+    console.log(otpRecord)
 
     if (!otpRecord) {
       return res.status(400).json({ message: "Invalid OTP" });
     }
 
+
+    res.status(201).send('otp verified and redirecting...')
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  const { email, newPassword } = req.body;
+
+  try {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     await User.updateOne({ email }, { password: hashedPassword });
 
-    await OTP.deleteOne({ email, otp });
+    
+    await OTP.deleteOne({ email });
 
     res.status(200).json({ message: "Password reset successfully" });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 exports.updateProfile = async (req, res) => {
   try {

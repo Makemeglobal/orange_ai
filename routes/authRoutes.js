@@ -245,6 +245,7 @@ catch(err){
  *         description: Invalid input
  */
 router.post("/reset-password", authController.resetPassword);
+router.post('/verify-pass-otp' ,authController.verifyOTP)
 
 /**
  * @swagger
